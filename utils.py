@@ -63,7 +63,10 @@ def load_data(model, seed=None):
 
     elif dataset == 'celebA':
         try:
-            data = np.load(ROOT_FOLDER + '/datasets/celebA.npy')
+            # TODO uncomment
+            # data = np.load(ROOT_FOLDER + '/datasets/celebA.npy')
+            # TODO remove
+            data = np.load(ROOT_FOLDER + '/datasets/celebA_mini.npy')
         except FileNotFoundError:
             print("Dataset file does not exist. You can download it here: https://www.dropbox.com/sh/flu98x7xghw2i59/AAC-eDY7TS9V54AxCtvBjGTAa?dl=0 Save celebA.npy in datasets folder")
 
@@ -609,7 +612,7 @@ def opts_check(model):
         assert type(opts['lambda_imq']) is float
         assert type(opts['IMQ_length_params']) is list # parameters should be scaled according to z_dim
         assert all(type(i) is float for i in opts['IMQ_length_params'])
-    assert opts['z_logvar_regularisation'] in [None, "L1", "L2_squared"]
+    assert opts['z_logvar_regularisation'] in [None, "L1", "L2_squared", "col_L1_enc", "col_L1_dec", "col_L1_enc_dec"]
     if opts['z_logvar_regularisation'] is not None:
         assert type(opts['lambda_logvar_regularisation']) is float
     assert opts['optimizer'] in ['adam']

@@ -363,6 +363,18 @@ def loss_init(model):
     elif model.opts['z_logvar_regularisation'] == 'L2_squared':
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * tf.reduce_mean(tf.reduce_sum(tf.square(model.z_logvar), axis=1), name="z_logvar_loss")
         all_losses.append(model.z_logvar_loss)
+    elif 'col_L1' in model.opts['z_logvar_regularisation']:
+        weight_names = []
+        if 'enc' in model.opts['z_logvar_regularisation']:
+            weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
+        if 'dec' in model.opts['z_logvar_regularisation']:
+            weight_names.append('dec_first/kernel')
+        assert len(weight_names) > 0
+        weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
+        # compute l1 norm of each column of the kernel, then compute MSE
+        z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=1), ord=2) for v in weights_to_penalize)
+        model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss
+        all_losses.append(model.z_logvar_loss)
     model.loss_total = tf.add_n(all_losses)
 
 def optimizer_init(model):
@@ -642,7 +654,8 @@ def _z_sample_init(model):
 def _decoder_small_convolutional_celebA_init(model):
     P_dense1 = tf.layers.dense(inputs=model.z_sample,
                                units=256*4*4,
-                               activation=tf.nn.elu)
+                               activation=tf.nn.elu,
+                               name='dec_first')
     P_dense1_reshape = tf.reshape(P_dense1, shape=[-1, 4, 4, 256])
 
     P_conv1 = tf.nn.elu(
@@ -726,7 +739,7 @@ def _decoder_small_convolutional_celebA_init(model):
                                 name="x_logits")
 
 def _decoder_FC_dsprites_init(model):
-    P_FC1 = tf.layers.dense(inputs=model.z_sample, units=1200, activation=tf.nn.tanh)
+    P_FC1 = tf.layers.dense(inputs=model.z_sample, units=1200, activation=tf.nn.tanh, name='dec_first')
     P_FC2 = tf.layers.dense(inputs=P_FC1, units=1200, activation=tf.nn.tanh)
     P_FC3 = tf.layers.dense(inputs=P_FC2, units=1200, activation=tf.nn.tanh)
     if model.data_dims[0] == 64:
