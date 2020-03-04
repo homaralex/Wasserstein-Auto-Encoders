@@ -103,10 +103,10 @@ def load_data(model, seed=None):
     return train_data, test_data
 
 def create_directories(model):
-    pathlib.Path(model.experiment_path).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(model.experiment_path).mkdir(parents=True, exist_ok=False)
     os.chdir(model.experiment_path)
-    pathlib.Path('output/plots/').mkdir(parents=True, exist_ok=True)
-    pathlib.Path('checkpoints').mkdir(exist_ok=True)
+    pathlib.Path('output/plots/').mkdir(parents=True, exist_ok=False)
+    pathlib.Path('checkpoints').mkdir(exist_ok=False)
 
 def print_log_information(model, it):
     # print train and test error to logs
