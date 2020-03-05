@@ -86,6 +86,35 @@ celebA_mini_opts['optimizer'] = 'adam'
 celebA_mini_opts['learning_rate_schedule'] = [(1e-4, 40000), (1e-5, 80001)]
 
 
+celebA_random_col_dec_opts = {}
+celebA_random_col_dec_opts['dataset'] = 'celebA'
+celebA_random_col_dec_opts['experiment_path'] = 'experiments/celebA_col_dec/exp1'
+celebA_random_col_dec_opts['z_dim'] = 256
+celebA_random_col_dec_opts['print_log_information'] = True
+celebA_random_col_dec_opts['make_pictures_every'] = 10000
+celebA_random_col_dec_opts['save_every'] = 10000
+celebA_random_col_dec_opts['plot_axis_walks'] = False
+#celebA_random_col_dec_opts['axis_walk_range'] = 1
+celebA_random_col_dec_opts['plot_losses'] =  False
+celebA_random_col_dec_opts['print_log_information'] = True
+celebA_random_col_dec_opts['batch_size'] = 100
+celebA_random_col_dec_opts["encoder_architecture"] = 'small_convolutional_celebA'
+celebA_random_col_dec_opts["decoder_architecture"] = 'small_convolutional_celebA'
+celebA_random_col_dec_opts['z_mean_activation'] = None
+celebA_random_col_dec_opts['encoder_distribution'] = 'gaussian'
+celebA_random_col_dec_opts['logvar-clipping'] = [-20,5]
+celebA_random_col_dec_opts['z_prior'] = 'gaussian'
+celebA_random_col_dec_opts['loss_reconstruction'] = 'bernoulli'
+celebA_random_col_dec_opts['loss_regulariser'] = 'WAE_MMD'
+celebA_random_col_dec_opts['lambda_imq'] = 400.0
+coeffs = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 0.8, 1.0, 2.0]
+celebA_random_col_dec_opts['IMQ_length_params'] = [c*celebA_random_col_dec_opts['z_dim'] for c in coeffs]
+celebA_random_col_dec_opts['z_logvar_regularisation'] = 'col_L1_dec'
+celebA_random_col_dec_opts['lambda_logvar_regularisation'] = 0.1 / 50
+celebA_random_col_dec_opts['optimizer'] = 'adam'
+celebA_random_col_dec_opts['learning_rate_schedule'] = [(1e-4, 40000), (1e-5, 80001)]
+
+
 celebA_random_opts = {}
 celebA_random_opts['dataset'] = 'celebA'
 celebA_random_opts['experiment_path'] = 'experiments/celebA/exp1'
