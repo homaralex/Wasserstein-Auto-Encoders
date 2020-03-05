@@ -63,10 +63,7 @@ def load_data(model, seed=None):
 
     elif dataset == 'celebA':
         try:
-            # TODO uncomment
-            # data = np.load(ROOT_FOLDER + '/datasets/celebA.npy')
-            # TODO remove
-            data = np.load(ROOT_FOLDER + '/datasets/celebA_mini.npy')
+            data = np.load(ROOT_FOLDER + '/datasets/celebA.npy')
         except FileNotFoundError:
             print("Dataset file does not exist. You can download it here: https://www.dropbox.com/sh/flu98x7xghw2i59/AAC-eDY7TS9V54AxCtvBjGTAa?dl=0 Save celebA.npy in datasets folder")
 
