@@ -84,6 +84,7 @@ celebA_mini_opts['lambda_logvar_regularisation'] = 0.1
 celebA_mini_opts['optimizer'] = 'adam'
 celebA_mini_opts['learning_rate_schedule'] = [(1e-4, 40000), (1e-5, 80001)]
 
+
 celebA_random_col_dec_opts = {}
 celebA_random_col_dec_opts['dataset'] = 'celebA'
 celebA_random_col_dec_opts['experiment_path'] = 'experiments/celebA_col_dec/exp1'
@@ -111,7 +112,6 @@ celebA_random_col_dec_opts['z_logvar_regularisation'] = 'col_L1_dec'
 celebA_random_col_dec_opts['lambda_logvar_regularisation'] = 0.1
 celebA_random_col_dec_opts['optimizer'] = 'adam'
 celebA_random_col_dec_opts['learning_rate_schedule'] = [(1e-4, 40000), (1e-5, 80001)]
-celebA_random_col_dec_opts['FID_score_samples'] = True
 
 celebA_random_opts = {}
 celebA_random_opts['dataset'] = 'celebA'
@@ -140,7 +140,7 @@ celebA_random_opts['z_logvar_regularisation'] = "L1"
 celebA_random_opts['lambda_logvar_regularisation'] = 0.1
 celebA_random_opts['optimizer'] = 'adam'
 celebA_random_opts['learning_rate_schedule'] = [(1e-4, 40000), (1e-5, 80001)]
-celebA_random_opts['FID_score_samples'] = True
+
 
 celebA_deterministic_opts = {}
 celebA_deterministic_opts['dataset'] = 'celebA'

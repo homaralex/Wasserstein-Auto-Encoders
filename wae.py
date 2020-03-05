@@ -7,9 +7,11 @@ import models
 import config
 import utils
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import disentanglement_metric
+
 
 class Model(object):
     def __init__(self, opts, load=False):
@@ -35,7 +37,6 @@ class Model(object):
             utils.create_directories(self)
             utils.save_opts(self)
             utils.copy_all_code(self)
-
 
         models.encoder_init(self)
         models.decoder_init(self)
@@ -95,13 +96,15 @@ class Model(object):
                     self.train_step,
                     feed_dict={self.learning_rate: lr,
                                self.input: self.sample_minibatch(batch_size=self.batch_size, augment=augment)}
-                    )
-                if self.opts['loss_reconstruction'] in ['L2_squared+adversarial', 'L2_squared+adversarial+l2_filter', 'L2_squared+multilayer_conv_adv', 'L2_squared+adversarial+l2_norm', 'normalised_conv_adv']:
+                )
+                if self.opts['loss_reconstruction'] in ['L2_squared+adversarial', 'L2_squared+adversarial+l2_filter',
+                                                        'L2_squared+multilayer_conv_adv',
+                                                        'L2_squared+adversarial+l2_norm', 'normalised_conv_adv']:
                     self.sess.run(
                         self.adv_cost_train_step,
                         feed_dict={self.learning_rate: lr,
                                    self.input: self.sample_minibatch(batch_size=self.batch_size, augment=augment)}
-                        )
+                    )
 
                 if (self.opts['print_log_information'] is True) and (it % 100 == 0):
                     utils.print_log_information(self, it)
@@ -112,6 +115,10 @@ class Model(object):
 
                 if it % self.opts['save_every'] == 0:
                     self.save(it)
+
+        print('\nComputing test error')
+        self.compute_test_error()
+
         # once training is complete, calculate disentanglement metric
         if 'disentanglement_metric' in self.opts:
             if self.opts['disentanglement_metric'] is True:
@@ -123,6 +130,26 @@ class Model(object):
             if self.opts['FID_score_samples'] is True:
                 self.save_FID_samples()
 
+    def compute_test_error(self):
+        l = len(self.test_data)
+        total_error = 0
+        num_batches = l // self.batch_size
+        for i in range(num_batches):
+            if i % 5 == 0:
+                print('.', end='', flush=True)
+            batch = self.test_data[self.batch_size * i:self.batch_size * (i + 1)]
+
+            loss_reconstruction = self.sess.run([
+                self.loss_reconstruction, ],
+                feed_dict={self.input: batch}
+            )[0]
+
+            total_error += loss_reconstruction
+
+        total_error /= num_batches
+        print(f'\nAverage error: {total_error}')
+        with open('test_error.txt', 'w') as out_file:
+            out_file.write(str(total_error))
 
     def encode(self, images, mean=True):
         if mean is False:
@@ -187,15 +214,15 @@ class Model(object):
         if len(self.test_data) < 10000:
             # reconstruct all data
             l = len(self.test_data)
-            for i in range(l//100):
+            for i in range(l // 100):
                 if i % 5 == 0:
                     print('.', end='', flush=True)
-                batch = self.test_data[100*i:100*(i+1)]
+                batch = self.test_data[100 * i:100 * (i + 1)]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 test_reconstructions.append(decoded)
-            if 100*(i+1) < l:
-                batch = self.test_data[100*(i+1):]
+            if 100 * (i + 1) < l:
+                batch = self.test_data[100 * (i + 1):]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 test_reconstructions.append(decoded)
@@ -204,7 +231,7 @@ class Model(object):
             for i in range(100):
                 if i % 5 == 0:
                     print('.', end='', flush=True)
-                batch = self.test_data[100*i:100*(i+1)]
+                batch = self.test_data[100 * i:100 * (i + 1)]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 test_reconstructions.append(decoded)
@@ -216,15 +243,15 @@ class Model(object):
         if len(self.train_data) < 10000:
             # reconstruct all data
             l = len(self.train_data)
-            for i in range(l//100):
+            for i in range(l // 100):
                 if i % 5 == 0:
                     print('.', end='', flush=True)
-                batch = self.train_data[100*i:100*(i+1)]
+                batch = self.train_data[100 * i:100 * (i + 1)]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 train_reconstructions.append(decoded)
-            if 100*(i+1) < l:
-                batch = self.train_data[100*(i+1):]
+            if 100 * (i + 1) < l:
+                batch = self.train_data[100 * (i + 1):]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 train_reconstructions.append(decoded)
@@ -233,7 +260,7 @@ class Model(object):
             for i in range(100):
                 if i % 5 == 0:
                     print('.', end='', flush=True)
-                batch = self.train_data[100*i:100*(i+1)]
+                batch = self.train_data[100 * i:100 * (i + 1)]
                 encoded = self.encode(batch)
                 decoded = self.decode(encoded)
                 train_reconstructions.append(decoded)
