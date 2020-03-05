@@ -74,6 +74,8 @@ if __name__ == "__main__":
         opts = config.fading_squares_opts
     elif FLAGS.experiment == 'celebA_random':
         opts = config.celebA_random_opts
+    elif FLAGS.experiment == 'celebA_random_col_dec':
+        opts = config.celebA_random_col_dec_opts
     elif FLAGS.experiment == 'celebA_deterministic':
         opts = config.celebA_deterministic_opts
     elif FLAGS.experiment == 'celebA_mini':
