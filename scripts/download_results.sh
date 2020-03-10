@@ -1,8 +1,9 @@
 # this script is used to download results from experiments where test reconstruction error is measured
 # at the end of training (so far only CelebA)
+# first argument is the credentials to log in to the ssh server
 
 # file name with per-experiment configuration dictionary
-OPTS_FILENAME='opts.txt'
+OPTS_FILENAME='opts.pickle'
 # directory to download the files to on the local machine
 DOWNLOAD_PATH='results_download'
 mkdir $DOWNLOAD_PATH
