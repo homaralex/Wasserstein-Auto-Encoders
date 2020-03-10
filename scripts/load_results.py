@@ -34,9 +34,9 @@ print(grouped.test_rec_error.mean())
 ncols = df.z_logvar_regularisation.nunique()
 nrows = int(np.ceil(grouped.ngroups / ncols))
 
-fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8), sharey='row')
-
 for use_orig_scale in [True, False]:
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8), sharey='row')
+
     for (key, ax) in zip(grouped.groups.keys(), axes.flatten()):
         subplot = grouped.get_group(key).plot.scatter(
             x='lambda_logvar_regularisation',
