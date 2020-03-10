@@ -267,3 +267,13 @@ class Model(object):
 
         train_reconstructions = np.concatenate(train_reconstructions)
         np.save("output/train_reconstructions.npy", train_reconstructions)
+
+    def generate_samples(self, num_samples, batch_size=100):
+        samples = []
+
+        while len(samples) < num_samples:
+            codes = self.sample_codes(batch_size=batch_size)
+            ims = self.decode(codes)
+            samples.extend(ims)
+
+        return np.array(samples[:num_samples])
