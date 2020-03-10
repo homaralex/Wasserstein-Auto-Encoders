@@ -12,6 +12,7 @@ TEST_ERROR_PATHS=$(ssh $1 find "Wasserstein-Auto-Encoders/experiments/" -type f 
 for TEST_ERROR_PATH in $TEST_ERROR_PATHS; do
   # create experiment directory tree on local machine
   mkdir -p ${DOWNLOAD_PATH}/$(dirname $TEST_ERROR_PATH)
+  echo "Downloading ${TEST_ERROR_PATH}"
   # download file with test_error
   rsync ${1}:${TEST_ERROR_PATH} ${DOWNLOAD_PATH}/${TEST_ERROR_PATH}
   # create path to the opts file and download it too
