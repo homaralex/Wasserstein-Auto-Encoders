@@ -4,6 +4,8 @@
 
 # file name with per-experiment configuration dictionary
 OPTS_FILENAME='opts.pickle'
+# file name for FID scores
+FID_FILENAME='test_fid.txt'
 # directory to download the files to on the local machine
 DOWNLOAD_PATH='results_download'
 mkdir $DOWNLOAD_PATH
@@ -18,4 +20,7 @@ for TEST_ERROR_PATH in $TEST_ERROR_PATHS; do
   # create path to the opts file and download it too
   OPTS_PATH=$(dirname $TEST_ERROR_PATH)/${OPTS_FILENAME}
   rsync ${1}:${OPTS_PATH} ${DOWNLOAD_PATH}/${OPTS_PATH}
+  # download fid score file
+  FID_PATH=$(dirname $TEST_ERROR_PATH)/${FID_FILENAME}
+  rsync ${1}:${FID_PATH} ${DOWNLOAD_PATH}/${FID_PATH}
 done
