@@ -12,6 +12,8 @@ Returns:
 '''
 import argparse
 import pickle
+from pathlib import Path
+
 import tensorflow as tf
 import functools
 import numpy as np
@@ -115,4 +117,8 @@ if __name__ == '__main__':
     generated_images = model.generate_samples(num_samples=args.num_samples, batch_size=args.batch_size)
 
     fid = get_fid(real_images, generated_images, preprocess=True, batch_size=args.batch_size)
+
+    # load_model changes cwd to experiment_path (in wae.Model init) so we can save the results here simply
+    with open('test_fid.txt', 'w') as out_file:
+        out_file.write(str(fid))
     print(fid)
