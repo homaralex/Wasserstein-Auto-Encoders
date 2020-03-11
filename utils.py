@@ -609,7 +609,17 @@ def opts_check(model):
         assert type(opts['lambda_imq']) is float
         assert type(opts['IMQ_length_params']) is list # parameters should be scaled according to z_dim
         assert all(type(i) is float for i in opts['IMQ_length_params'])
-    assert opts['z_logvar_regularisation'] in [None, "L1", "L2_squared", "col_L1_enc", "col_L1_dec", "col_L1_enc_dec"]
+    assert opts['z_logvar_regularisation'] in [
+        None,
+        "L1",
+        "L2_squared",
+        "col_L1_enc",
+        "col_L1_dec",
+        "col_L1_enc_dec",
+        "col_L1_enc_proximal",
+        "col_L1_dec_proximal",
+        "col_L1_enc_dec_proximal",
+    ]
     if opts['z_logvar_regularisation'] is not None:
         assert type(opts['lambda_logvar_regularisation']) is float
     assert opts['optimizer'] in ['adam']

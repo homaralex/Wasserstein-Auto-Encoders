@@ -97,6 +97,10 @@ class Model(object):
                     feed_dict={self.learning_rate: lr,
                                self.input: self.sample_minibatch(batch_size=self.batch_size, augment=augment)}
                 )
+
+                if 'proximal' in self.opts['z_logvar_regularisation']:
+                    self.apply_proximal_gradient(lr=lr)
+
                 if self.opts['loss_reconstruction'] in ['L2_squared+adversarial', 'L2_squared+adversarial+l2_filter',
                                                         'L2_squared+multilayer_conv_adv',
                                                         'L2_squared+adversarial+l2_norm', 'normalised_conv_adv']:
@@ -277,3 +281,28 @@ class Model(object):
             samples.extend(ims)
 
         return np.array(samples[:num_samples])
+
+    def apply_proximal_gradient(self, lr):
+        weight_names = []
+
+        if 'enc' in self.opts['z_logvar_regularisation']:
+            weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
+        if 'dec' in self.opts['z_logvar_regularisation']:
+            weight_names.append('dec_first/kernel')
+        weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
+        assert len(weights_to_penalize) > 0
+
+        min_val = lr * self.opts['lambda_logvar_regularisation']
+        with tf.Session() as sess:
+            for weight_matrix in weights_to_penalize:
+                sess.run(tf.initialize_all_variables())
+
+                norms = tf.norm(weight_matrix, ord=2, axis=1, keepdims=True)
+
+                # TODO is there no other way than to use tf.float.max?
+                new_weights = (weight_matrix / norms) * tf.clip_by_value(
+                    t=(norms - min_val),
+                    clip_value_min=0,
+                    clip_value_max=tf.float32.max,
+                )
+                sess.run(weight_matrix.assign(new_weights))

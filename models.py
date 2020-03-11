@@ -367,7 +367,7 @@ def loss_init(model):
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * tf.reduce_mean(
             tf.reduce_sum(tf.square(model.z_logvar), axis=1), name="z_logvar_loss")
         all_losses.append(model.z_logvar_loss)
-    elif 'col_L1' in model.opts['z_logvar_regularisation']:
+    elif 'col_L1' in model.opts['z_logvar_regularisation'] and 'proximal' not in model.opts['z_logvar_regularisation']:
         weight_names = []
         # this is used to have a similar order of magnitude for the loss values as for the logvar_l1_penalty
         calibrate_factor = 1
@@ -379,8 +379,8 @@ def loss_init(model):
             calibrate_factor = 1 / 50
             if 'enc' in model.opts['z_logvar_regularisation']:
                 calibrate_factor = 1 / 75
-        assert len(weight_names) > 0
         weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
+        assert len(weights_to_penalize) > 0
         # compute l1 norm of each column of the kernel, then compute MSE
         z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=1), ord=2) for v in weights_to_penalize)
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
