@@ -367,6 +367,7 @@ def loss_init(model):
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * tf.reduce_mean(
             tf.reduce_sum(tf.square(model.z_logvar), axis=1), name="z_logvar_loss")
         all_losses.append(model.z_logvar_loss)
+    # TODO naming is wrong - this should actually induce per-row sparsity
     elif 'col_L1' in model.opts['z_logvar_regularisation'] and 'proximal' not in model.opts['z_logvar_regularisation']:
         weight_names = []
         # this is used to have a similar order of magnitude for the loss values as for the logvar_l1_penalty
@@ -386,7 +387,7 @@ def loss_init(model):
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
         all_losses.append(model.z_logvar_loss)
 
-    elif 'row_L1' in model.opts['z_logvar_regularisation']:
+    elif 'io_L1' in model.opts['z_logvar_regularisation']:
         column_lasso_loss = 0
         if 'dec' in model.opts['z_logvar_regularisation']:
             weights_to_penalize = [w for w in tf.trainable_variables() if 'dec_first/kernel' in w.name][0]
