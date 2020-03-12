@@ -385,6 +385,23 @@ def loss_init(model):
         z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=1), ord=2) for v in weights_to_penalize)
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
         all_losses.append(model.z_logvar_loss)
+
+    # TODO allow for row penalty (parameterize axis)
+    elif 'io_lasso' in model.opts['z_logvar_regularisation']:
+        column_lasso_loss = 0
+        if 'dec' in model.opts['z_logvar_regularisation']:
+            weights_to_penalize = [w for w in tf.trainable_variables() if 'dec_first/kernel' in w.name][0]
+            column_lasso_loss += tf.reduce_sum(tf.norm(weights_to_penalize, ord=2, axis=1))
+
+        if 'enc' in model.opts['z_logvar_regularisation']:
+            weights_to_penalize = [w for w in tf.trainable_variables() if
+                                   any(w_name in w.name for w_name in ['z_mean/kernel', 'z_logvar/kernel'])]
+            assert len(weights_to_penalize) > 0
+            column_lasso_loss += sum(tf.reduce_sum(tf.norm(w, ord=2, axis=0)) for w in weights_to_penalize)
+
+        model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * column_lasso_loss
+        all_losses.append(model.z_logvar_loss)
+
     model.loss_total = tf.add_n(all_losses)
 
 
