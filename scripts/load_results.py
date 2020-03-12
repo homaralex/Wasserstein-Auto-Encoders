@@ -61,7 +61,8 @@ for use_orig_scale in (True, False):
                 ax=ax,
             )
             ax.legend(loc='upper left')
-            ax.set_xlim((5e-5, 15.5))
+            max_x_val = grouped.lambda_logvar_regularisation.max().max()
+            ax.set_xlim((5e-5, 1.5 * grouped.lambda_logvar_regularisation.max().max()))
             if use_orig_scale:
                 ax.set_ylim((6350, 6550) if key[0] == 32 else (6250, 6450))
 
