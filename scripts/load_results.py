@@ -36,35 +36,42 @@ for test_error_file in DOWNLOAD_PATH.glob(f'**/{TEST_ERROR_FILENAME}'):
 df = pd.DataFrame(rows)
 grouped = df.groupby([
     'z_dim',
+    'lambda_logvar_regularisation',
     'z_logvar_regularisation',
 ])
 print(grouped.test_rec_error.mean())
+print(grouped.test_fid_score.mean())
 
 for use_orig_scale in (True, False):
     for all_methods in (True, False):
-        grouped = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_dec'))]).groupby([
-            'z_dim',
-            'z_logvar_regularisation',
-        ])
+        for metric in ('test_rec_error', 'test_fid_score'):
+            grouped = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_enc'))]).groupby([
+                'z_dim',
+                'z_logvar_regularisation',
+            ])
 
-        ncols = df.z_logvar_regularisation.nunique() if all_methods else 2
-        nrows = df.z_dim.nunique()
+            ncols = df.z_logvar_regularisation.nunique() if all_methods else 2
+            nrows = df.z_dim.nunique()
 
-        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 8), sharey='row')
+            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 8), sharey='row')
 
-        for (key, ax) in zip(grouped.groups.keys(), axes.flatten()):
-            subplot = grouped.get_group(key).plot.scatter(
-                x='lambda_logvar_regularisation',
-                y='test_rec_error',
-                logx=True,
-                label=key,
-                ax=ax,
-            )
-            ax.legend(loc='upper left')
-            max_x_val = grouped.lambda_logvar_regularisation.max().max()
-            ax.set_xlim((5e-5, 1.5 * grouped.lambda_logvar_regularisation.max().max()))
-            if use_orig_scale:
-                ax.set_ylim((6350, 6550) if key[0] == 32 else (6250, 6450))
+            for (key, ax) in zip(grouped.groups.keys(), axes.flatten()):
+                subplot = grouped.get_group(key).plot.scatter(
+                    x='lambda_logvar_regularisation',
+                    y=metric,
+                    logx=True,
+                    label=key,
+                    ax=ax,
+                )
+                ax.legend(loc='upper left')
+                max_x_val = grouped.lambda_logvar_regularisation.max().max()
+                ax.set_xlim((5e-5, 1.5 * grouped.lambda_logvar_regularisation.max().max()))
+                if use_orig_scale:
+                    if 'rec' in metric:
+                        ax.set_ylim((6350, 6550) if key[0] == 32 else (6250, 6450))
+                    else:
+                        ax.set_ylim((70, 90) if key[0] == 32 else (70, 150))
 
-        plt.savefig(PLOTS_DIR / f'{"orig" if use_orig_scale else "auto"}_scale{"_all" if all_methods else ""}.png')
-        plt.show()
+            plt.savefig(
+                PLOTS_DIR / f'{metric}_{"orig" if use_orig_scale else "auto"}_scale{"_all" if all_methods else ""}.png')
+            plt.show()
