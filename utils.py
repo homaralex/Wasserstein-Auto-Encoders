@@ -615,7 +615,7 @@ def opts_check(model):
         "L2_squared",
         "col_L1_enc",
         "col_L1_dec",
-        "col_L1_enc_dec",
+        # "col_L1_enc_dec",
         "io_L1_enc",
         "io_L1_dec",
         "io_L1_enc_dec",
