@@ -392,6 +392,30 @@ def loss_init(model):
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
         all_losses.append(model.z_logvar_loss)
 
+    elif 'row_L1' in model.opts['z_logvar_regularisation'] and 'proximal' not in model.opts['z_logvar_regularisation']:
+        # NOTE: the naming is off in case of the encoder penalty - in that case it induces col-based sparsity
+        # (see col_L1)
+        # TODO change
+        weight_names = []
+        # this is used to have a similar order of magnitude for the loss values as for the logvar_l1_penalty
+        calibrate_factor = 1
+        if 'enc' in model.opts['z_logvar_regularisation']:
+            weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
+            calibrate_factor = 1 / 25
+        if 'dec' in model.opts['z_logvar_regularisation']:
+            weight_names.append('dec_first/kernel')
+            calibrate_factor = 1 / 50
+            if 'enc' in model.opts['z_logvar_regularisation']:
+                calibrate_factor = 1 / 75
+                # prohibit joint penalty for now as it would be inconsistent
+                raise ValueError('Joint model penalty not yet implemented')
+        weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
+        assert len(weights_to_penalize) > 0
+        # compute l1 norm of each row of the kernel, then compute MSE
+        z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=0), ord=2) for v in weights_to_penalize)
+        model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
+        all_losses.append(model.z_logvar_loss)
+
     elif 'io_L1' in model.opts['z_logvar_regularisation']:
         column_lasso_loss = 0
         if 'dec' in model.opts['z_logvar_regularisation']:
