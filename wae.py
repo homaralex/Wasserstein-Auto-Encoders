@@ -282,6 +282,19 @@ class Model(object):
 
         return np.array(samples[:num_samples])
 
+    def get_variances(self, num_samples, batch_size=100, test_data=False):
+        dset = self.test_data if test_data else self.train_data
+
+        log_vars = []
+        i = 0
+        while len(log_vars) < num_samples:
+            batch = dset[batch_size * i:batch_size * (i + 1)]
+            log_var_batch = self.sess.run(self.z_logvar, feed_dict={self.input: batch})
+            log_vars.extend(log_var_batch)
+            i += 1
+
+        return np.array(log_vars[:num_samples])
+
     def apply_proximal_gradient(self, lr):
         weight_names = []
 
