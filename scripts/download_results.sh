@@ -6,6 +6,8 @@
 OPTS_FILENAME='opts.pickle'
 # file name for FID scores
 FID_FILENAME='test_fid.txt'
+# file name for active dims
+ACTIVE_DIMS_FILENAME='num_active_dims.txt'
 # directory to download the files to on the local machine
 DOWNLOAD_PATH='results_download'
 mkdir $DOWNLOAD_PATH
@@ -23,4 +25,7 @@ for TEST_ERROR_PATH in $TEST_ERROR_PATHS; do
   # download fid score file
   FID_PATH=$(dirname $TEST_ERROR_PATH)/${FID_FILENAME}
   rsync ${1}:${FID_PATH} ${DOWNLOAD_PATH}/${FID_PATH}
+  # download active dims file
+  ACTIVE_DIMS_PATH=$(dirname $TEST_ERROR_PATH)/${ACTIVE_DIMS_FILENAME}
+  rsync ${1}:${ACTIVE_DIMS_PATH} ${DOWNLOAD_PATH}/${ACTIVE_DIMS_PATH}
 done
