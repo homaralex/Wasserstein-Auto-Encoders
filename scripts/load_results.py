@@ -1,7 +1,6 @@
 import pickle
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -9,6 +8,7 @@ DOWNLOAD_PATH = Path('results_download')
 OPTS_FILENAME = 'opts.pickle'
 FID_FILENAME = 'test_fid.txt'
 TEST_ERROR_FILENAME = 'test_error.txt'
+NUM_ACTIVE_DIMS_FILENAME = 'num_active_dims.txt'
 PLOTS_DIR = Path('plots')
 PLOTS_DIR.mkdir(exist_ok=True)
 
@@ -27,6 +27,10 @@ for test_error_file in DOWNLOAD_PATH.glob(f'**/{TEST_ERROR_FILENAME}'):
     if fid_score_file.exists():
         opts_dict['test_fid_score'] = float(fid_score_file.read_text())
 
+    num_active_dims_file = test_error_file.parent / NUM_ACTIVE_DIMS_FILENAME
+    if num_active_dims_file.exists():
+        opts_dict['num_active_dims'] = float(num_active_dims_file.read_text())
+
     # omit zero values due to log-scaling of the x-axis in the plots
     if opts_dict['lambda_logvar_regularisation'] == 0:
         opts_dict['lambda_logvar_regularisation'] = 1e-4
@@ -41,11 +45,12 @@ grouped = df.groupby([
 ])
 print(grouped.test_rec_error.mean())
 print(grouped.test_fid_score.mean())
+print(grouped.num_active_dims.mean())
 
-for use_orig_scale in (True, False):
+for use_orig_scale in (False,):  # (True, False):
     for all_methods in (True, False):
-        for metric in ('test_rec_error', 'test_fid_score'):
-            grouped = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_enc'))]).groupby([
+        for metric in ('test_rec_error', 'test_fid_score', 'num_active_dims'):
+            grouped = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_dec'))]).groupby([
                 'z_dim',
                 'z_logvar_regularisation',
             ])
