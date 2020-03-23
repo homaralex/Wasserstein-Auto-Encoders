@@ -584,7 +584,10 @@ def _encoder_small_convolutional_celebA_init(model):
     x = model.input
     model.x_flattened = tf.reshape(x, shape=[-1, np.prod(model.data_dims)])
 
-    Q_conv1 = tf.layers.batch_normalization(
+    def batch_norm_wrapper(layer):
+        return tf.layers.batch_normalization(layer) if model.enc_batch_norm else layer
+
+    Q_conv1 = batch_norm_wrapper(
         tf.layers.conv2d(inputs=x,
                          filters=128,
                          kernel_size=[3, 3],
@@ -595,7 +598,7 @@ def _encoder_small_convolutional_celebA_init(model):
                                       pool_size=[2, 2],
                                       strides=2)
 
-    Q_conv2 = tf.layers.batch_normalization(
+    Q_conv2 = batch_norm_wrapper(
         tf.layers.conv2d(inputs=Q_pool1,
                          filters=256,
                          kernel_size=[3, 3],
@@ -606,7 +609,7 @@ def _encoder_small_convolutional_celebA_init(model):
                                       pool_size=[2, 2],
                                       strides=2)
 
-    Q_conv3 = tf.layers.batch_normalization(
+    Q_conv3 = batch_norm_wrapper(
         tf.layers.conv2d(inputs=Q_pool2,
                          filters=256,
                          kernel_size=[3, 3],
@@ -617,7 +620,7 @@ def _encoder_small_convolutional_celebA_init(model):
                                       pool_size=[2, 2],
                                       strides=2)
 
-    Q_conv4 = tf.layers.batch_normalization(
+    Q_conv4 = batch_norm_wrapper(
         tf.layers.conv2d(inputs=Q_pool3,
                          filters=256,
                          kernel_size=[3, 3],
@@ -628,7 +631,7 @@ def _encoder_small_convolutional_celebA_init(model):
                                       pool_size=[2, 2],
                                       strides=2)
 
-    Q_conv5 = tf.layers.batch_normalization(
+    Q_conv5 = batch_norm_wrapper(
         tf.layers.conv2d(inputs=Q_pool4,
                          filters=256,
                          kernel_size=[3, 3],
@@ -718,15 +721,18 @@ def _decoder_small_convolutional_celebA_init(model):
                                name='dec_first')
     P_dense1_reshape = tf.reshape(P_dense1, shape=[-1, 4, 4, 256])
 
+    def batch_norm_wrapper(layer):
+        return tf.layers.batch_normalization(layer) if model.dec_batch_norm else layer
+
     P_conv1 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_dense1_reshape,
                              filters=256,
                              kernel_size=[3, 3],
                              padding="same")))
 
     P_conv2 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv1,
                              filters=128,
                              kernel_size=[3, 3],
@@ -735,14 +741,14 @@ def _decoder_small_convolutional_celebA_init(model):
     P_conv2_upsampled = tf.image.resize_nearest_neighbor(images=P_conv2, size=[8, 8])
 
     P_conv3 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv2_upsampled,
                              filters=64,
                              kernel_size=[3, 3],
                              padding="same")))
 
     P_conv4 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv3,
                              filters=64,
                              kernel_size=[3, 3],
@@ -751,14 +757,14 @@ def _decoder_small_convolutional_celebA_init(model):
     P_conv4_upsampled = tf.image.resize_nearest_neighbor(images=P_conv4,
                                                          size=[16, 16])
     P_conv5 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv4_upsampled,
                              filters=32,
                              kernel_size=[3, 3],
                              padding="same")))
 
     P_conv6 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv5,
                              filters=32,
                              kernel_size=[3, 3],
@@ -768,14 +774,14 @@ def _decoder_small_convolutional_celebA_init(model):
                                                          size=[32, 32])
 
     P_conv7 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv6_upsampled,
                              filters=16,
                              kernel_size=[3, 3],
                              padding="same")))
 
     P_conv8 = tf.nn.elu(
-        tf.layers.batch_normalization(
+        batch_norm_wrapper(
             tf.layers.conv2d(inputs=P_conv7,
                              filters=16,
                              kernel_size=[3, 3],

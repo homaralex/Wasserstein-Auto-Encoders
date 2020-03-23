@@ -1,15 +1,9 @@
 import tensorflow as tf
 import numpy as np
 import os
-import time
-import sys
 import models
-import config
 import utils
-import matplotlib
 
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import disentanglement_metric
 
 
@@ -321,3 +315,11 @@ class Model(object):
                 sess.run(weight_matrix.assign(new_weights))
 
                 sess.run(tf.print(tf.math.count_nonzero(weight_matrix)))
+
+    @property
+    def enc_batch_norm(self):
+        return self.opts.get('enc_batch_norm', True)
+
+    @property
+    def dec_batch_norm(self):
+        return self.opts.get('dec_batch_norm', True)
