@@ -303,16 +303,18 @@ class Model(object):
 
         for weight_matrix in weights_to_penalize:
             norms = tf.norm(weight_matrix, ord=2, axis=1 if 'dec' in weight_matrix.name else 0, keepdims=True)
+            # clip norms to epsilon to prevent zero division
+            eps_norms = tf.clip_by_value(t=norms, clip_value_min=1e-16, clip_value_max=tf.float32.max)
 
-            # TODO is there no other way than to use tf.float.max?
-            new_weights = (weight_matrix / norms) * tf.clip_by_value(
-                    t=(norms - min_val),
-                    clip_value_min=0,
-                    clip_value_max=tf.float32.max,
-                )
+            new_weights = (weight_matrix / eps_norms) * tf.clip_by_value(
+                t=(norms - min_val),
+                clip_value_min=0,
+                clip_value_max=tf.float32.max,
+            )
             self.sess.run(weight_matrix.assign(new_weights))
 
-            # self.sess.run(tf.print(tf.math.count_nonzero(weight_matrix)))
+            # self.sess.run(
+            #     tf.print(tf.math.count_nonzero(weight_matrix) / (weight_matrix.shape[0] * weight_matrix.shape[1])))
 
     @property
     def enc_batch_norm(self):
