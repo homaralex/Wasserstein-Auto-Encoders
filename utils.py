@@ -624,6 +624,9 @@ def opts_check(model):
         "col_L1_enc_proximal",
         "col_L1_dec_proximal",
         "col_L1_enc_dec_proximal",
+        "row_L1_enc_proximal",
+        "row_L1_dec_proximal",
+        "row_L1_enc_dec_proximal",
     ]
     if opts['z_logvar_regularisation'] is not None:
         assert type(opts['lambda_logvar_regularisation']) is float

@@ -302,7 +302,9 @@ class Model(object):
         min_val = lr * self.opts['lambda_logvar_regularisation']
 
         for weight_matrix in weights_to_penalize:
-            norms = tf.norm(weight_matrix, ord=2, axis=1 if 'dec' in weight_matrix.name else 0, keepdims=True)
+            axis_bool = 'dec' in weight_matrix.name
+            axis_int = int(axis_bool if 'col' in self.opts['z_logvar_regularisation'] else not axis_bool)
+            norms = tf.norm(weight_matrix, ord=2, axis=axis_int, keepdims=True)
             # clip norms to epsilon to prevent zero division
             eps_norms = tf.clip_by_value(t=norms, clip_value_min=1e-16, clip_value_max=tf.float32.max)
 
@@ -313,8 +315,8 @@ class Model(object):
             )
             self.sess.run(weight_matrix.assign(new_weights))
 
-            # self.sess.run(
-            #     tf.print(tf.math.count_nonzero(weight_matrix) / (weight_matrix.shape[0] * weight_matrix.shape[1])))
+            self.sess.run(
+                tf.print(tf.math.count_nonzero(weight_matrix) / (weight_matrix.shape[0] * weight_matrix.shape[1])))
 
     @property
     def enc_batch_norm(self):
