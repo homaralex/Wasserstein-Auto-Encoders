@@ -300,21 +300,19 @@ class Model(object):
         assert len(weights_to_penalize) > 0
 
         min_val = lr * self.opts['lambda_logvar_regularisation']
-        with tf.Session() as sess:
-            for weight_matrix in weights_to_penalize:
-                sess.run(tf.initialize_all_variables())
 
-                norms = tf.norm(weight_matrix, ord=2, axis=1 if 'dec' in weight_matrix.name else 0, keepdims=True)
+        for weight_matrix in weights_to_penalize:
+            norms = tf.norm(weight_matrix, ord=2, axis=1 if 'dec' in weight_matrix.name else 0, keepdims=True)
 
-                # TODO is there no other way than to use tf.float.max?
-                new_weights = (weight_matrix / norms) * tf.clip_by_value(
+            # TODO is there no other way than to use tf.float.max?
+            new_weights = (weight_matrix / norms) * tf.clip_by_value(
                     t=(norms - min_val),
                     clip_value_min=0,
                     clip_value_max=tf.float32.max,
                 )
-                sess.run(weight_matrix.assign(new_weights))
+            self.sess.run(weight_matrix.assign(new_weights))
 
-                sess.run(tf.print(tf.math.count_nonzero(weight_matrix)))
+            # self.sess.run(tf.print(tf.math.count_nonzero(weight_matrix)))
 
     @property
     def enc_batch_norm(self):
