@@ -52,7 +52,10 @@ for use_orig_scale in (False,):  # (True, False):
     for all_methods in (True, False):
         for metric in ('test_rec_error', 'test_fid_score', 'num_active_dims'):
             sub_df = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_dec'))])
-            dims_and_methods = list(itertools.product(sub_df.z_dim.unique(), sub_df.z_logvar_regularisation.unique()))
+            dims_and_methods = sorted(list(itertools.product(
+                sub_df.z_dim.unique(),
+                sub_df.z_logvar_regularisation.unique()),
+            ))
             grouped = sub_df.groupby([
                 'z_dim',
                 'z_logvar_regularisation',
