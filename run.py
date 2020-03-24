@@ -63,7 +63,8 @@ parser.add_argument("--l2_lambda", type=float,
                     help="Weighting of l2 penalty")
 parser.add_argument("--patch_classifier_lambda", type=float,
                     help="Weighting of the patch classification penalty")
-
+parser.add_argument("--no_dec_batch_norm", action='store_true')
+parser.add_argument("--no_enc_batch_norm", action='store_true')
 
 FLAGS = parser.parse_args()
 
@@ -168,6 +169,10 @@ if __name__ == "__main__":
         opts['l2_lambda'] = FLAGS.l2_lambda
     if FLAGS.patch_classifier_lambda is not None:
         opts['patch_classifier_lambda'] = FLAGS.patch_classifier_lambda
+    if FLAGS.no_dec_batch_norm is not None:
+        opts['dec_batch_norm'] = not FLAGS.no_dec_batch_norm
+    if FLAGS.no_enc_batch_norm is not None:
+        opts['enc_batch_norm'] = not FLAGS.no_enc_batch_norm
 
     model = wae.Model(opts)
     model.train()
