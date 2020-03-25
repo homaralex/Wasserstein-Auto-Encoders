@@ -5,6 +5,10 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
 DOWNLOAD_PATH = Path('results_download')
 OPTS_FILENAME = 'opts.pickle'
 FID_FILENAME = 'test_fid.txt'
@@ -51,7 +55,7 @@ print(grouped.num_active_dims.mean())
 for use_orig_scale in (False,):  # (True, False):
     for all_methods in (True, False):
         for metric in ('test_rec_error', 'test_fid_score', 'num_active_dims'):
-            sub_df = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_dec'))])
+            sub_df = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_enc'))])
             dims_and_methods = sorted(list(itertools.product(
                 sub_df.z_dim.unique(),
                 sub_df.z_logvar_regularisation.unique()),
