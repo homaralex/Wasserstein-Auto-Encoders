@@ -43,6 +43,34 @@ for test_error_file in DOWNLOAD_PATH.glob(f'**/{TEST_ERROR_FILENAME}'):
     rows.append(opts_dict)
 
 df = pd.DataFrame(rows)
+
+# plot FID vs rec. error
+# filter out runs without any regularisation
+grouped = df.loc[df.lambda_logvar_regularisation > 1e-4].groupby([
+    'z_dim',
+    'z_logvar_regularisation',
+])
+ncols = df.z_logvar_regularisation.nunique()
+nrows = df.z_dim.nunique()
+
+fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 8), sharey='row', sharex='row')
+
+for (key, ax) in zip(sorted(itertools.product(df.z_dim.unique(), df.z_logvar_regularisation.unique())), axes.flatten()):
+    try:
+        subplot = grouped.get_group(key).plot.scatter(
+            x='test_rec_error',
+            y='test_fid_score',
+            label=key,
+            ax=ax,
+        )
+        ax.legend(loc='upper left')
+    except KeyError:
+        print(f'Group {key} not present')
+plt.savefig(PLOTS_DIR / 'fid_vs_rec_error.png')
+plt.show()
+
+
+# plot all metrics vs reg. strength
 grouped = df.groupby([
     'z_dim',
     'lambda_logvar_regularisation',
