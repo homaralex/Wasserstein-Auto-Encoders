@@ -31,7 +31,7 @@ def copy_all_code(model):
 
 
 def load_disentanglement_data_dsprites():
-    dataset_zip = np.load(ROOT_FOLDER + "/datasets/dsprites.npz", encoding='bytes')
+    dataset_zip = np.load(ROOT_FOLDER + "/datasets/dsprites.npz", encoding='bytes', allow_pickle=True)
     imgs = dataset_zip['imgs']
     latents_values = dataset_zip['latents_values']
     latents_classes = dataset_zip['latents_classes']
