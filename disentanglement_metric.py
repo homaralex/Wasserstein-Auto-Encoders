@@ -1,6 +1,9 @@
+import argparse
+
 import numpy as np
 import tensorflow as tf
 import utils
+
 
 class Disentanglement(object):
     def __init__(self, model):
@@ -12,13 +15,13 @@ class Disentanglement(object):
     def do_all(self, iteration_num):
         print("Calculating disentanglement metric on 4 variables")
         print("Generating data")
-        Z_diff, Y = self.generate_data(30, 5000) # they use 5000 batches
+        Z_diff, Y = self.generate_data(30, 5000)  # they use 5000 batches
         print("\nTraining classifier")
         self.train_classifier(Z_diff, Y, iteration_num)
 
         print("Calculating disentanglement metric on 5 variables")
         print("Generating data")
-        Z_diff, Y = self.generate_data(30, 5000, 5) # they use 5000 batches
+        Z_diff, Y = self.generate_data(30, 5000, 5)  # they use 5000 batches
         print("\nTraining classifier")
         self.train_classifier5(Z_diff, Y, iteration_num)
 
@@ -29,8 +32,9 @@ class Disentanglement(object):
             print('.', end='', flush=True)
             self.model.sess.run(tf.variables_initializer(self.classifier_vars + self.optimiser_vars))
             for i in range(100000):
-                self.model.sess.run(self.train_step, feed_dict={self.classifier_input: Z_diff, self.true_labels:Y})
-            final_accuracy = self.model.sess.run(self.accuracy, feed_dict={self.classifier_input: Z_diff, self.true_labels:Y})
+                self.model.sess.run(self.train_step, feed_dict={self.classifier_input: Z_diff, self.true_labels: Y})
+            final_accuracy = self.model.sess.run(self.accuracy,
+                                                 feed_dict={self.classifier_input: Z_diff, self.true_labels: Y})
             with open("disentanglement4.txt", "a") as disentanglement_file:
                 disentanglement_file.write("\n%g" % final_accuracy)
         print("\n")
@@ -42,8 +46,9 @@ class Disentanglement(object):
         for _ in range(3):
             self.model.sess.run(tf.variables_initializer(self.classifier_vars5 + self.optimiser_vars5))
             for i in range(100000):
-                self.model.sess.run(self.train_step5, feed_dict={self.classifier_input5: Z_diff, self.true_labels5:Y})
-            final_accuracy = self.model.sess.run(self.accuracy5, feed_dict={self.classifier_input5: Z_diff, self.true_labels5:Y})
+                self.model.sess.run(self.train_step5, feed_dict={self.classifier_input5: Z_diff, self.true_labels5: Y})
+            final_accuracy = self.model.sess.run(self.accuracy5,
+                                                 feed_dict={self.classifier_input5: Z_diff, self.true_labels5: Y})
             with open("disentanglement5.txt", "a") as disentanglement_file:
                 disentanglement_file.write("\n%g" % final_accuracy)
         return
@@ -54,14 +59,14 @@ class Disentanglement(object):
         for b in range(B):
             if b % 500 == 0:
                 print('.', end='', flush=True)
-            y = np.random.randint(1,num_features+1)
-            Y.append(y-1)  # for convenience when implementing the classifier, subtract 1 to get labels 0,...,3
+            y = np.random.randint(1, num_features + 1)
+            Y.append(y - 1)  # for convenience when implementing the classifier, subtract 1 to get labels 0,...,3
             v1 = self.sample_latent(L)
             v2 = self.sample_latent(L)
             # -y because posX, posY, scale and rotation are last 4 latent factors
-            v2[:,-y] = v1[:,-y]
-            im1 = self.imgs[self.latent_to_index(v1)][:,:,:,None]
-            im2 = self.imgs[self.latent_to_index(v2)][:,:,:,None]
+            v2[:, -y] = v1[:, -y]
+            im1 = self.imgs[self.latent_to_index(v1)][:, :, :, None]
+            im2 = self.imgs[self.latent_to_index(v2)][:, :, :, None]
             # need to be n_images x height x width x channels
             z1 = self.model.encode(im1)
             z2 = self.model.encode(im2)
@@ -70,8 +75,6 @@ class Disentanglement(object):
         Z_diff = np.array(Z_diff)
         Y = np.array(Y)
         return Z_diff, Y
-
-
 
     def _classifier_init(self):
         self.classifier_input = tf.placeholder(tf.float32, shape=[None, self.model.z_dim])
@@ -111,3 +114,13 @@ class Disentanglement(object):
         for lat_i, lat_size in enumerate(self.latents_sizes):
             samples[:, lat_i] = np.random.randint(lat_size, size=size)
         return samples
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('-e', '--experiment_path', type=str, required=True)
+    args = parser.parse_args()
+
+    model = utils.load_model(experiment_path=args.experiment_path)
+    disentanglement = Disentanglement(model)
+    disentanglement.do_all(-1)

@@ -11,8 +11,6 @@ Returns:
     Frechet Inception Distance between the two image distributions.
 '''
 import argparse
-import pickle
-from pathlib import Path
 
 import tensorflow as tf
 import functools
@@ -21,7 +19,7 @@ import time
 from tensorflow.python.ops import array_ops
 from tqdm import tqdm
 
-import wae
+from utils import load_model
 
 
 def inception_activations(images, num_splits=1):
@@ -78,18 +76,6 @@ def get_fid(images1, images2, preprocess, batch_size):
     fid = activations2distance(act1, act2)
     print('FID calculation time: %f s' % (time.time() - start_time))
     return fid
-
-
-def load_model(experiment_path, dataset=None):
-    with open(experiment_path + "/opts.pickle", 'rb') as f:
-        opts = pickle.load(f)
-    if dataset is not None:
-        opts['dataset'] = dataset
-    # TODO write this in a nicer way
-    opts['experiment_path'] = 'results_download/Wasserstein-Auto-Encoders/' + opts['experiment_path']
-    model = wae.Model(opts, load=True)
-
-    return model
 
 
 if __name__ == '__main__':

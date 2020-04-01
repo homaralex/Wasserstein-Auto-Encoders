@@ -1,20 +1,8 @@
 import argparse
-import pickle
 
 import numpy as np
 
-import wae
-
-
-def load_model(experiment_path, dataset=None):
-    with open(experiment_path + "/opts.pickle", 'rb') as f:
-        opts = pickle.load(f)
-    if dataset is not None:
-        opts['dataset'] = dataset
-    model = wae.Model(opts, load=True)
-
-    return model
-
+from utils import load_model
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
