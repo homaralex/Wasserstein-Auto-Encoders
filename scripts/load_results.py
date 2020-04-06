@@ -2,6 +2,7 @@ import pickle
 import itertools
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -14,6 +15,8 @@ OPTS_FILENAME = 'opts.pickle'
 FID_FILENAME = 'test_fid.txt'
 TEST_ERROR_FILENAME = 'test_error.txt'
 NUM_ACTIVE_DIMS_FILENAME = 'num_active_dims.txt'
+DISENTANGLEMENT_4_FILENAME = 'disentanglement4.txt'
+DISENTANGLEMENT_5_FILENAME = 'disentanglement5.txt'
 PLOTS_DIR = Path('plots')
 PLOTS_DIR.mkdir(exist_ok=True)
 
@@ -36,6 +39,12 @@ for test_error_file in DOWNLOAD_PATH.glob(f'**/{TEST_ERROR_FILENAME}'):
     if num_active_dims_file.exists():
         opts_dict['num_active_dims'] = float(num_active_dims_file.read_text())
 
+    for disentanglement_filename in (DISENTANGLEMENT_4_FILENAME, DISENTANGLEMENT_5_FILENAME):
+        disentanglement_file = test_error_file.parent / disentanglement_filename
+        if disentanglement_file.exists():
+            for idx, dis_score in enumerate(disentanglement_file.read_text().split('\n')[3:]):
+                opts_dict[disentanglement_filename.replace('.txt', '')] = float(dis_score)
+
     # omit zero values due to log-scaling of the x-axis in the plots
     if opts_dict['lambda_logvar_regularisation'] == 0:
         opts_dict['lambda_logvar_regularisation'] = 1e-4
@@ -43,6 +52,17 @@ for test_error_file in DOWNLOAD_PATH.glob(f'**/{TEST_ERROR_FILENAME}'):
     rows.append(opts_dict)
 
 df = pd.DataFrame(rows)
+metrics = (
+    'test_rec_error',
+    'test_fid_score',
+    'num_active_dims',
+    'disentanglement4',
+    'disentanglement5',
+)
+# add metrics manually if they are not found in the data (so that all further code can be run)
+for metric in metrics:
+    if metric not in df:
+        df[metric] = np.nan
 
 # plot FID vs rec. error
 # filter out runs without any regularisation
@@ -55,20 +75,21 @@ nrows = df.z_dim.nunique()
 
 fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 8), sharey='row', sharex='row')
 
-for (key, ax) in zip(sorted(itertools.product(df.z_dim.unique(), df.z_logvar_regularisation.unique())), axes.flatten()):
-    try:
-        subplot = grouped.get_group(key).plot.scatter(
-            x='test_rec_error',
-            y='test_fid_score',
-            label=key,
-            ax=ax,
-        )
-        ax.legend(loc='upper left')
-    except KeyError:
-        print(f'Group {key} not present')
-plt.savefig(PLOTS_DIR / 'fid_vs_rec_error.png')
-plt.show()
-
+for metric in ('test_fid_score', 'disentanglement4', 'disentanglement5'):
+    for (key, ax) in zip(sorted(itertools.product(df.z_dim.unique(), df.z_logvar_regularisation.unique())),
+                         axes.flatten()):
+        try:
+            subplot = grouped.get_group(key).plot.scatter(
+                x='test_rec_error',
+                y=metric,
+                label=key,
+                ax=ax,
+            )
+            ax.legend(loc='upper left')
+        except KeyError:
+            print(f'Group {key} not present')
+    plt.savefig(PLOTS_DIR / f'{metric}_vs_rec_error.png')
+    plt.show()
 
 # plot all metrics vs reg. strength
 grouped = df.groupby([
@@ -76,13 +97,16 @@ grouped = df.groupby([
     'lambda_logvar_regularisation',
     'z_logvar_regularisation',
 ])
+
 print(grouped.test_rec_error.mean())
 print(grouped.test_fid_score.mean())
 print(grouped.num_active_dims.mean())
+print(grouped.disentanglement4.mean())
+print(grouped.disentanglement5.mean())
 
 for use_orig_scale in (False,):  # (True, False):
     for all_methods in (True, False):
-        for metric in ('test_rec_error', 'test_fid_score', 'num_active_dims'):
+        for metric in metrics:
             sub_df = (df if all_methods else df.loc[df.z_logvar_regularisation.isin(('L1', 'col_L1_enc'))])
             dims_and_methods = sorted(list(itertools.product(
                 sub_df.z_dim.unique(),
