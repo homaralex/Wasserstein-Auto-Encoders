@@ -1,5 +1,3 @@
-import time
-
 import tensorflow as tf
 import numpy as np
 import os
@@ -98,10 +96,8 @@ class Model(object):
                 )
 
                 if 'proximal' in self.opts['z_logvar_regularisation']:
-                    start = time.time()
                     self.apply_proximal_gradient(lr=lr)
                     end = time.time()
-                    print(end - start)
 
                 if self.opts['loss_reconstruction'] in ['L2_squared+adversarial', 'L2_squared+adversarial+l2_filter',
                                                         'L2_squared+multilayer_conv_adv',
