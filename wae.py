@@ -1,3 +1,5 @@
+import time
+
 import tensorflow as tf
 import numpy as np
 import os
@@ -39,6 +41,9 @@ class Model(object):
         models.optimizer_init(self)
         if 'data_augmentation' in self.opts and self.opts['data_augmentation'] is True:
             models.data_augmentation_init(self)
+
+        if 'proximal' in self.opts['z_logvar_regularisation']:
+            self._proximal_init()
 
         self.fixed_test_sample = self.sample_minibatch(test=True, seed=0)
         self.fixed_train_sample = self.sample_minibatch(test=False, seed=0)
@@ -93,7 +98,10 @@ class Model(object):
                 )
 
                 if 'proximal' in self.opts['z_logvar_regularisation']:
+                    start = time.time()
                     self.apply_proximal_gradient(lr=lr)
+                    end = time.time()
+                    print(end - start)
 
                 if self.opts['loss_reconstruction'] in ['L2_squared+adversarial', 'L2_squared+adversarial+l2_filter',
                                                         'L2_squared+multilayer_conv_adv',
@@ -289,19 +297,22 @@ class Model(object):
 
         return np.array(log_vars[:num_samples])
 
-    def apply_proximal_gradient(self, lr):
+    def _proximal_init(self):
         weight_names = []
 
         if 'enc' in self.opts['z_logvar_regularisation']:
             weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
         if 'dec' in self.opts['z_logvar_regularisation']:
             weight_names.append('dec_first/kernel')
-        weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
-        assert len(weights_to_penalize) > 0
+        proximal_weights_to_penalize = [w for w in tf.trainable_variables() if
+                                        any(w_name in w.name for w_name in weight_names)]
+        assert len(proximal_weights_to_penalize) > 0
 
-        min_val = lr * self.opts['lambda_logvar_regularisation']
+        proximal_lr = tf.placeholder(tf.float32, shape=(), name='proximal_lr')
+        min_val = proximal_lr * self.opts['lambda_logvar_regularisation']
 
-        for weight_matrix in weights_to_penalize:
+        self.proximal_ops = []
+        for weight_matrix in proximal_weights_to_penalize:
             axis_bool = 'dec' in weight_matrix.name
             axis_int = int(axis_bool if 'col' in self.opts['z_logvar_regularisation'] else not axis_bool)
 
@@ -314,10 +325,13 @@ class Model(object):
                 clip_value_min=0,
                 clip_value_max=tf.float32.max,
             )
-            self.sess.run(weight_matrix.assign(new_weights))
-
-            # self.sess.run(
+            self.proximal_ops.append(weight_matrix.assign(new_weights))
+            # self.proximal_ops.append(
             #     tf.print(tf.math.count_nonzero(weight_matrix) / (weight_matrix.shape[0] * weight_matrix.shape[1])))
+
+    def apply_proximal_gradient(self, lr):
+        for proximal_op in self.proximal_ops:
+            self.sess.run(proximal_op, feed_dict={'proximal_lr:0': lr})
 
     @property
     def enc_batch_norm(self):
