@@ -295,10 +295,20 @@ class Model(object):
     def _proximal_init(self):
         weight_names = []
 
+        all_layers = 'all' in self.opts['z_logvar_regularisation']
         if 'enc' in self.opts['z_logvar_regularisation']:
             weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
+            # TODO this solution is tragically ugly
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'enc' in w.name and 'enc_first' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
         if 'dec' in self.opts['z_logvar_regularisation']:
             weight_names.append('dec_first/kernel')
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'dec' in w.name and 'x_logits' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
         proximal_weights_to_penalize = [w for w in tf.trainable_variables() if
                                         any(w_name in w.name for w_name in weight_names)]
         assert len(proximal_weights_to_penalize) > 0

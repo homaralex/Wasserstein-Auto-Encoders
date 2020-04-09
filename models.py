@@ -672,12 +672,17 @@ def _encoder_FC_dsprites_init(model):
 
     model.x_flattened = tf.reshape(model.input, shape=[-1, np.prod(model.data_dims)])
 
-    Q_FC1 = tf.layers.dense(inputs=model.x_flattened,
-                            units=1200,
-                            activation=tf.nn.relu)
-    Q_FC2 = tf.layers.dense(inputs=Q_FC1,
-                            units=1200,
-                            activation=tf.nn.relu)
+    Q_FC1 = tf.layers.dense(
+        inputs=model.x_flattened,
+        units=1200,
+        activation=tf.nn.relu,
+        name='enc_first',
+    )
+    Q_FC2 = tf.layers.dense(
+        inputs=Q_FC1,
+        units=1200,
+        activation=tf.nn.relu,
+    )
 
     if model.opts['z_mean_activation'] == 'tanh':
         model.z_mean = tf.layers.dense(inputs=Q_FC2, units=model.z_dim, activation=tf.nn.tanh, name="z_mean")
