@@ -628,6 +628,7 @@ def opts_check(model):
         "io_L1_dec",
         "io_L1_enc_dec",
         "col_L1_enc_proximal",
+        "col_L1_enc_all_proximal",
         "col_L1_dec_proximal",
         "col_L1_enc_dec_proximal",
         "row_L1_enc_proximal",
