@@ -407,12 +407,22 @@ def loss_init(model):
         # NOTE: the naming is off in case of the encoder penalty - in that case it induces col-based sparsity
         # (see col_L1)
         # TODO change
+
+        all_layers = 'all' in model.opts['z_logvar_regularisation']
         weight_names = []
         # this is used to have a similar order of magnitude for the loss values as for the logvar_l1_penalty
         if 'enc' in model.opts['z_logvar_regularisation']:
             weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'enc' in w.name and 'enc_first' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
         if 'dec' in model.opts['z_logvar_regularisation']:
             weight_names.append('dec_first/kernel')
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'dec' in w.name and 'x_logits' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
             if 'enc' in model.opts['z_logvar_regularisation']:
                 # prohibit joint penalty for now as it would be inconsistent
                 raise ValueError('Joint model penalty not yet implemented')
