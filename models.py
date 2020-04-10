@@ -372,21 +372,32 @@ def loss_init(model):
         # NOTE: the naming is off in case of the encoder penalty - in that case it induces row-based sparsity
         # however this naming is kept to be consistent with already-run experiments
         # TODO change
+
+        all_layers = 'all' in model.opts['z_logvar_regularisation']
         weight_names = []
         # this is used to have a similar order of magnitude for the loss values as for the logvar_l1_penalty
         calibrate_factor = 1
         if 'enc' in model.opts['z_logvar_regularisation']:
             weight_names.extend(['z_mean/kernel', 'z_logvar/kernel'])
             calibrate_factor = 1 / 25
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'enc' in w.name and 'enc_first' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
         if 'dec' in model.opts['z_logvar_regularisation']:
             weight_names.append('dec_first/kernel')
             calibrate_factor = 1 / 50
+            if all_layers:
+                for w in tf.trainable_variables():
+                    if 'dec' in w.name and 'x_logits' not in w.name and 'kernel' in w.name:
+                        weight_names.append(w.name)
             if 'enc' in model.opts['z_logvar_regularisation']:
                 calibrate_factor = 1 / 75
                 # prohibit joint penalty for now as it would be inconsistent
                 raise ValueError('Joint model penalty not yet implemented')
         weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
         assert len(weights_to_penalize) > 0
+        print(weights_to_penalize)
         # compute l1 norm of each column of the kernel, then compute MSE
         z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=1), ord=2) for v in weights_to_penalize)
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
@@ -676,9 +687,9 @@ def _encoder_FC_dsprites_init(model):
         inputs=model.x_flattened,
         units=1200,
         activation=tf.nn.relu,
-        # the name is used only for proximal penalty for now - don't use it to allow backwards compatibility with
+        # the name is used only for all-layers penalty for now - don't use it to allow backwards compatibility with
         # previously trained models
-        name='enc_first' if 'proximal' in model.opts['z_logvar_regularisation'] else None,
+        name='enc_first' if 'all' in model.opts['z_logvar_regularisation'] else None,
     )
     Q_FC2 = tf.layers.dense(
         inputs=Q_FC1,
