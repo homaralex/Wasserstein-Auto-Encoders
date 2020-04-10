@@ -676,7 +676,9 @@ def _encoder_FC_dsprites_init(model):
         inputs=model.x_flattened,
         units=1200,
         activation=tf.nn.relu,
-        name='enc_first',
+        # the name is used only for proximal penalty for now - don't use it to allow backwards compatibility with
+        # previously trained models
+        name='enc_first' if 'proximal' in model.opts['z_logvar_regularisation'] else None,
     )
     Q_FC2 = tf.layers.dense(
         inputs=Q_FC1,
