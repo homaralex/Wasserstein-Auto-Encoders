@@ -397,7 +397,7 @@ def loss_init(model):
                 raise ValueError('Joint model penalty not yet implemented')
         weights_to_penalize = [w for w in tf.trainable_variables() if any(w_name in w.name for w_name in weight_names)]
         assert len(weights_to_penalize) > 0
-        print(weights_to_penalize)
+
         # compute l1 norm of each column of the kernel, then compute MSE
         z_logvar_loss = sum(tf.norm(tf.reduce_sum(tf.abs(v), axis=1), ord=2) for v in weights_to_penalize)
         model.z_logvar_loss = model.opts['lambda_logvar_regularisation'] * z_logvar_loss * calibrate_factor
