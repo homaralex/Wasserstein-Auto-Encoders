@@ -121,6 +121,6 @@ if __name__ == '__main__':
     disentanglement_metrics = DisentanglementMetrics(model)
     metrics = disentanglement_metrics.run(num_points=1e4)
 
-    with open('disentanglement_metrics.txt', 'w') as out_file:
+    with open('disentanglement_metrics.json', 'w') as out_file:
         json.dump(metrics, out_file)
     print(metrics)
