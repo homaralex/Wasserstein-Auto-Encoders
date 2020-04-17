@@ -5,12 +5,13 @@ import gin
 import numpy as np
 import disentanglement_lib.evaluation.metrics.utils as dlib_metrics_utils
 import disentanglement_lib.evaluation.metrics.mig as dlib_mig
+import disentanglement_lib.evaluation.metrics.dci as dlib_dci
 import disentanglement_lib.evaluation.metrics.modularity_explicitness as dlib_modularity
 
 import utils
 from disentanglement_metric import Disentanglement
 
-METRICS = ('mig', 'modularity_explicitness')
+METRICS = ('mig', 'modularity_explicitness', 'dci')
 # use absolute path as WAE.__init__ changes current dir
 METRIC_CONFIGS_DIR = Path('metric_configs').absolute()
 METRIC_CONFIGS_PATHS = {metric_name: METRIC_CONFIGS_DIR / f'{metric_name}.gin' for metric_name in METRICS}
@@ -47,12 +48,12 @@ class DisentanglementMetrics(Disentanglement):
 
         return {'modularity_score': dlib_modularity.modularity(mutual_information)}
 
-    def explicitness(self, zs, ys):
+    def explicitness(self, zs, ys, zs_test, ys_test):
         config_path = METRIC_CONFIGS_PATHS['modularity_explicitness']
         gin.parse_config_file(config_file=str(config_path))
 
         mus_train, ys_train = zs, ys
-        mus_test, ys_test = self._get_data_points(num_points=ys.shape[1] // 2)
+        mus_test, ys_test = zs_test, ys_test
 
         scores = {}
         explicitness_score_train = np.zeros([ys_train.shape[0], 1])
@@ -69,16 +70,29 @@ class DisentanglementMetrics(Disentanglement):
 
         return scores
 
+    def dci(self, zs, ys, zs_test, ys_test):
+        config_path = METRIC_CONFIGS_PATHS['dci']
+        gin.parse_config_file(config_file=str(config_path))
+
+        return dlib_dci._compute_dci(
+            mus_train=zs,
+            ys_train=ys,
+            mus_test=zs_test,
+            ys_test=ys_test,
+        )
+
     def run(self, num_points=1e4):
         # cast to int as scientific notation numbers are floats
         num_points = int(num_points)
 
         zs, ys = self._get_data_points(num_points=num_points)
+        zs_test, ys_test = self._get_data_points(num_points=num_points // 2)
 
         metrics = {}
         metrics.update(self.mig(zs=zs, ys=ys))
         metrics.update(self.modularity(zs=zs, ys=ys))
-        metrics.update(self.explicitness(zs=zs, ys=ys))
+        metrics.update(self.explicitness(zs=zs, ys=ys, zs_test=zs_test, ys_test=ys_test))
+        metrics.update(self.dci(zs=zs, ys=ys, zs_test=zs_test, ys_test=ys_test))
 
         return metrics
 
