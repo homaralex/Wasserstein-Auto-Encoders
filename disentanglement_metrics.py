@@ -1,3 +1,4 @@
+import json
 import argparse
 from pathlib import Path
 
@@ -118,6 +119,8 @@ if __name__ == '__main__':
 
     model = utils.load_model(experiment_path=args.experiment_path)
     disentanglement_metrics = DisentanglementMetrics(model)
-
     metrics = disentanglement_metrics.run(num_points=1e4)
+
+    with open('disentanglement_metrics.txt', 'w') as out_file:
+        json.dump(metrics, out_file)
     print(metrics)
