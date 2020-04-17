@@ -6,12 +6,13 @@ import numpy as np
 import disentanglement_lib.evaluation.metrics.utils as dlib_metrics_utils
 import disentanglement_lib.evaluation.metrics.mig as dlib_mig
 import disentanglement_lib.evaluation.metrics.dci as dlib_dci
+import disentanglement_lib.evaluation.metrics.sap_score as dlib_sap
 import disentanglement_lib.evaluation.metrics.modularity_explicitness as dlib_modularity
 
 import utils
 from disentanglement_metric import Disentanglement
 
-METRICS = ('mig', 'modularity_explicitness', 'dci')
+METRICS = ('mig', 'modularity_explicitness', 'dci', 'sap_score')
 # use absolute path as WAE.__init__ changes current dir
 METRIC_CONFIGS_DIR = Path('metric_configs').absolute()
 METRIC_CONFIGS_PATHS = {metric_name: METRIC_CONFIGS_DIR / f'{metric_name}.gin' for metric_name in METRICS}
@@ -81,6 +82,18 @@ class DisentanglementMetrics(Disentanglement):
             ys_test=ys_test,
         )
 
+    def sap(self, zs, ys, zs_test, ys_test):
+        config_path = METRIC_CONFIGS_PATHS['sap_score']
+        gin.parse_config_file(config_file=str(config_path))
+
+        return dlib_sap._compute_sap(
+            mus=zs,
+            ys=ys,
+            mus_test=zs_test,
+            ys_test=ys_test,
+            continuous_factors=gin.query_parameter('sap_score.continuous_factors'),
+        )
+
     def run(self, num_points=1e4):
         # cast to int as scientific notation numbers are floats
         num_points = int(num_points)
@@ -93,6 +106,7 @@ class DisentanglementMetrics(Disentanglement):
         metrics.update(self.modularity(zs=zs, ys=ys))
         metrics.update(self.explicitness(zs=zs, ys=ys, zs_test=zs_test, ys_test=ys_test))
         metrics.update(self.dci(zs=zs, ys=ys, zs_test=zs_test, ys_test=ys_test))
+        metrics.update(self.sap(zs=zs, ys=ys, zs_test=zs_test, ys_test=ys_test))
 
         return metrics
 
