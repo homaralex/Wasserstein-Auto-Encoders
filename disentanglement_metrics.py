@@ -62,6 +62,8 @@ class DisentanglementMetrics(Disentanglement):
         explicitness_score_test = np.zeros([ys_test.shape[0], 1])
         mus_train_norm, mean_mus, stddev_mus = dlib_metrics_utils.normalize_data(mus_train)
         mus_test_norm, _, _ = dlib_metrics_utils.normalize_data(mus_test, mean_mus, stddev_mus)
+        # in case of std = 0
+        mus_train_norm, mus_test_norm = np.nan_to_num(mus_train_norm), np.nan_to_num(mus_test_norm)
         for i in range(ys_train.shape[0]):
             explicitness_score_train[i], explicitness_score_test[i] = dlib_modularity.explicitness_per_factor(
                 mus_train_norm, ys_train[i, :],
